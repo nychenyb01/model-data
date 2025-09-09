@@ -1,0 +1,65 @@
+class MainWindow(QMainWindow):
+    """主窗口"""
+    def setup_tray(self):    
+        quit_action = QAction("退出", self)
+        quit_action.triggered.connect(self.quit_application)
+        tray_menu.addAction(quit_action)
+  
+    def quit_application(self):
+        """退出应用程序"""
+        if self.proxy_thread and self.proxy_thread.isRunning():
+            self.stop_proxy()
+        QApplication.quit()
+		
+		
+		
+class ProxyThread(QThread):
+    def start_tun2socks(self):
+        """启动tun2socks进程创建Tun设备"""
+        #self.output.emit("启动tun2socks创建Tun设备...")
+        
+        # 构建tun2socks命令
+        tun2socks_path = os.path.join(BIN_PATH, "tun2socks4.exe")
+        cmd = [
+            tun2socks_path,
+            "--tunName", self.tun_name,
+            "--proxyServer", self.proxy_str,
+            "--loglevel", "info",
+            "--proxyType","socks",
+            "--tunAddr","10.0.236.10",
+            "--tunMask","255.255.255.0",
+            "--tunGw","10.0.236.1",
+            "--tunDns","223.5.5.5"
+        ]
+        
+        try:
+            self.process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                bufsize=1,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            
+            # 启动线程读取输出
+            reader_thread = threading.Thread(target=self.read_output)
+            reader_thread.daemon = True
+            reader_thread.start()
+                
+        except Exception as e:
+            self.output.emit(f"启动tun2socks时出错: {str(e)}")
+
+    def cleanup_proxy_routes(self):
+        """清理代理相关的路由规则"""
+        self.output.emit("清理代理路由规则...")
+        
+        try:
+            # 停止tun2socks进程
+            if self.process:
+                self.process.terminate()
+                self.process.wait()
+            
+            self.output.emit("路由规则清理完成")
+        except Exception as e:
+            self.output.emit(f"清理路由时出错: {str(e)}")
