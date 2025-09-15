@@ -78,6 +78,11 @@
             border-bottom: 2px solid #f0f0f0;
         }
         
+        h3 {
+            margin: 20px 0 15px;
+            color: #2c3e50;
+        }
+        
         .form-group {
             margin-bottom: 20px;
         }
@@ -112,13 +117,20 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: 600;
-            width: 100%;
             transition: transform 0.2s, box-shadow 0.2s;
         }
         
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #9fa6b0);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #e25563);
         }
         
         .result-item {
@@ -209,6 +221,38 @@
             background-color: #f5f7fa;
         }
         
+        .prepay-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .prepay-table th, .prepay-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        
+        .prepay-table th {
+            background-color: #f8f9fa;
+        }
+        
+        .collapsed-rows {
+            text-align: center;
+            padding: 10px;
+            background-color: #f8f9fa;
+            font-style: italic;
+            color: #6c757d;
+        }
+        
+        .toggle-rows {
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            color: #4a6491;
+            font-weight: 600;
+        }
+        
         @media (max-width: 768px) {
             .calculator-container {
                 flex-direction: column;
@@ -224,7 +268,7 @@
     <div class="container">
         <header>
             <h1>房贷提前还款计算器</h1>
-            <p class="description">计算提前还款后的剩余利息、月供和期数变化</p>
+            <p class="description">支持非连续提前还款，计算剩余利息、月供和期数变化</p>
         </header>
         
         <div class="calculator-container">
@@ -243,25 +287,36 @@
                     <input type="number" id="annualRate" value="2.95" min="0.1" step="0.01">
                 </div>
                 <div class="form-group">
-                    <label for="currentMonth">当前期数（月）</label>
-                    <input type="number" id="currentMonth" value="1" min="1" max="360">
+                    <label for="startDate">贷款起始日期</label>
+                    <input type="date" id="startDate" value="2023-01-01">
                 </div>
                 
                 <h2>提前还款计划</h2>
                 <div class="form-group">
+                    <label for="prepayDate">提前还款日期</label>
+                    <input type="date" id="prepayDate">
+                </div>
+                <div class="form-group">
                     <label for="prepayAmount">提前还款金额（万元）</label>
                     <input type="number" id="prepayAmount" value="0" min="0" step="0.1">
                 </div>
-                <div class="form-group">
-                    <label for="prepayMonth">从第几个月开始提前还款</label>
-                    <input type="number" id="prepayMonth" value="1" min="1" max="360">
-                </div>
-                <div class="form-group">
-                    <label for="prepayTimes">连续提前还款月数</label>
-                    <input type="number" id="prepayTimes" value="1" min="1" max="36">
-                </div>
+                <button id="addPrepayBtn">添加提前还款</button>
                 
-                <button id="calculateBtn">计算还款计划</button>
+                <h3>提前还款计划表</h3>
+                <table class="prepay-table">
+                    <thead>
+                        <tr>
+                            <th>还款日期</th>
+                            <th>金额（万元）</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prepayTableBody">
+                        <!-- 提前还款计划将通过JavaScript生成 -->
+                    </tbody>
+                </table>
+                
+                <button id="calculateBtn" style="width: 100%; margin-top: 20px;">计算还款计划</button>
             </div>
             
             <div class="result-section">
@@ -328,7 +383,7 @@
         </div>
         
         <div class="chart-container">
-            <h2>提前还款计划表（最近12个月）</h2>
+            <h2>未来10年还款计划表</h2>
             <table class="payment-table">
                 <thead>
                     <tr>
@@ -394,8 +449,66 @@
                 }
             });
             
-            // 初始化还款计划表
-            updatePaymentTable();
+            // 提前还款计划数据
+            let prepayPlans = [];
+            
+            // 添加提前还款按钮事件
+            document.getElementById('addPrepayBtn').addEventListener('click', function() {
+                const date = document.getElementById('prepayDate').value;
+                const amount = parseFloat(document.getElementById('prepayAmount').value);
+                
+                if (!date || isNaN(amount) || amount <= 0) {
+                    alert('请输入有效的日期和金额');
+                    return;
+                }
+                
+                // 添加到计划
+                prepayPlans.push({ date, amount: amount * 10000 });
+                
+                // 更新表格显示
+                updatePrepayTable();
+                
+                // 清空输入
+                document.getElementById('prepayAmount').value = '';
+            });
+            
+            // 更新提前还款计划表
+            function updatePrepayTable() {
+                const tableBody = document.getElementById('prepayTableBody');
+                tableBody.innerHTML = '';
+                
+                // 按日期排序
+                prepayPlans.sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                prepayPlans.forEach((plan, index) => {
+                    const row = document.createElement('tr');
+                    
+                    // 日期
+                    const dateCell = document.createElement('td');
+                    const dateObj = new Date(plan.date);
+                    dateCell.textContent = dateObj.toLocaleDateString();
+                    row.appendChild(dateCell);
+                    
+                    // 金额
+                    const amountCell = document.createElement('td');
+                    amountCell.textContent = (plan.amount / 10000).toFixed(2);
+                    row.appendChild(amountCell);
+                    
+                    // 操作
+                    const actionCell = document.createElement('td');
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = '删除';
+                    deleteBtn.classList.add('btn-danger');
+                    deleteBtn.addEventListener('click', function() {
+                        prepayPlans.splice(index, 1);
+                        updatePrepayTable();
+                    });
+                    actionCell.appendChild(deleteBtn);
+                    row.appendChild(actionCell);
+                    
+                    tableBody.appendChild(row);
+                });
+            }
             
             // 计算按钮点击事件
             document.getElementById('calculateBtn').addEventListener('click', function() {
@@ -411,10 +524,7 @@
                 const loanAmount = parseFloat(document.getElementById('loanAmount').value) * 10000;
                 const loanTerm = parseInt(document.getElementById('loanTerm').value);
                 const annualRate = parseFloat(document.getElementById('annualRate').value) / 100;
-                const currentMonth = parseInt(document.getElementById('currentMonth').value);
-                const prepayAmount = parseFloat(document.getElementById('prepayAmount').value) * 10000;
-                const prepayMonth = parseInt(document.getElementById('prepayMonth').value);
-                const prepayTimes = parseInt(document.getElementById('prepayTimes').value);
+                const startDate = new Date(document.getElementById('startDate').value);
                 
                 // 计算月利率
                 const monthlyRate = annualRate / 12;
@@ -429,43 +539,76 @@
                 // 计算原总利息
                 const totalInterest = monthlyPayment * totalMonths - loanAmount;
                 
-                // 计算剩余本金（等额本息法）
-                let remainingPrincipal = loanAmount * (Math.pow(1 + monthlyRate, totalMonths) - Math.pow(1 + monthlyRate, currentMonth - 1)) / 
-                                        (Math.pow(1 + monthlyRate, totalMonths) - 1);
-                
-                // 计算提前还款后的新贷款情况
-                let newRemainingPrincipal = remainingPrincipal;
+                // 初始化还款计划
+                let remainingPrincipal = loanAmount;
                 let totalPaidInterest = 0;
-                let newTotalMonths = 0;
-                let prepaid = 0;
+                let month = 1;
+                let prepayIndex = 0;
                 
-                // 模拟还款过程
-                for (let month = currentMonth; month <= totalMonths; month++) {
-                    if (newRemainingPrincipal <= 0) break;
+                // 按日期排序提前还款计划
+                prepayPlans.sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                // 计算还款计划
+                const paymentSchedule = [];
+                
+                while (remainingPrincipal > 0 && month <= totalMonths) {
+                    // 计算当前日期
+                    const currentDate = new Date(startDate);
+                    currentDate.setMonth(startDate.getMonth() + month - 1);
                     
                     // 当月利息
-                    const monthlyInterest = newRemainingPrincipal * monthlyRate;
+                    const monthlyInterest = remainingPrincipal * monthlyRate;
                     totalPaidInterest += monthlyInterest;
                     
                     // 当月本金
-                    const monthlyPrincipal = monthlyPayment - monthlyInterest;
+                    let monthlyPrincipal = monthlyPayment - monthlyInterest;
                     
-                    // 提前还款处理
+                    // 检查是否有提前还款
                     let extraPayment = 0;
-                    if (month >= prepayMonth && month < prepayMonth + prepayTimes && prepaid < prepayAmount) {
-                        extraPayment = Math.min(prepayAmount / prepayTimes, newRemainingPrincipal - monthlyPrincipal);
-                        prepaid += extraPayment;
+                    const currentDateStr = currentDate.toISOString().split('T')[0];
+                    
+                    // 检查所有提前还款计划
+                    for (let i = prepayIndex; i < prepayPlans.length; i++) {
+                        const planDateStr = prepayPlans[i].date;
+                        
+                        // 如果提前还款日期与当前月份匹配
+                        if (planDateStr === currentDateStr) {
+                            extraPayment += prepayPlans[i].amount;
+                            prepayIndex = i + 1;
+                        } else if (new Date(planDateStr) > currentDate) {
+                            // 提前还款日期在未来，跳出循环
+                            break;
+                        }
+                    }
+                    
+                    // 确保还款不超过剩余本金
+                    if (monthlyPrincipal + extraPayment > remainingPrincipal) {
+                        monthlyPrincipal = remainingPrincipal - extraPayment;
                     }
                     
                     // 更新剩余本金
-                    newRemainingPrincipal -= (monthlyPrincipal + extraPayment);
-                    
-                    // 计数
-                    newTotalMonths++;
+                    remainingPrincipal -= (monthlyPrincipal + extraPayment);
                     
                     // 如果剩余本金非常小，直接清零
-                    if (newRemainingPrincipal < 0.01) {
-                        newRemainingPrincipal = 0;
+                    if (remainingPrincipal < 0.01) {
+                        remainingPrincipal = 0;
+                    }
+                    
+                    // 添加到还款计划
+                    paymentSchedule.push({
+                        month,
+                        date: new Date(currentDate),
+                        monthlyPrincipal,
+                        monthlyInterest,
+                        extraPayment,
+                        remainingPrincipal
+                    });
+                    
+                    month++;
+                    
+                    // 如果剩余本金为0，退出循环
+                    if (remainingPrincipal <= 0) {
+                        break;
                     }
                 }
                 
@@ -476,24 +619,26 @@
                 const savedInterest = totalInterest - newTotalInterest;
                 
                 // 计算新还款总额
-                const newTotalPayment = remainingPrincipal + newTotalInterest;
+                const newTotalPayment = loanAmount + newTotalInterest;
                 
                 // 更新页面显示
-                document.getElementById('originalMonthly').textContent = monthlyPayment.toFixed(2) + '元';
-                document.getElementById('originalInterest').textContent = totalInterest.toFixed(2) + '元';
-                document.getElementById('remainingPrincipal').textContent = remainingPrincipal.toFixed(2) + '元';
-                document.getElementById('newMonthly').textContent = monthlyPayment.toFixed(2) + '元';
-                document.getElementById('remainingInterest').textContent = newTotalInterest.toFixed(2) + '元';
-                document.getElementById('savedInterest').textContent = savedInterest.toFixed(2) + '元';
-                document.getElementById('remainingMonths').textContent = newTotalMonths + '个月';
+                document.getElementById('originalMonthly').textContent = monthlyPayment.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '元';
+                document.getElementById('originalInterest').textContent = totalInterest.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '元';
+                document.getElementById('remainingPrincipal').textContent = (paymentSchedule[paymentSchedule.length - 1]?.remainingPrincipal || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '元';
+                document.getElementById('newMonthly').textContent = monthlyPayment.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '元';
+                document.getElementById('remainingInterest').textContent = newTotalInterest.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '元';
+                document.getElementById('savedInterest').textContent = savedInterest.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '元';
+                document.getElementById('remainingMonths').textContent = paymentSchedule.length + '个月';
                 
-                document.getElementById('originalTotal').textContent = (loanAmount + totalInterest).toFixed(2) + '元';
-                document.getElementById('newTotal').textContent = newTotalPayment.toFixed(2) + '元';
-                document.getElementById('totalSavings').textContent = (loanAmount + totalInterest - newTotalPayment).toFixed(2) + '元';
-                document.getElementById('prepayPercentage').textContent = ((prepayAmount / loanAmount) * 100).toFixed(2) + '%';
+                document.getElementById('originalTotal').textContent = (loanAmount + totalInterest).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '元';
+                document.getElementById('newTotal').textContent = newTotalPayment.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '元';
+                document.getElementById('totalSavings').textContent = (loanAmount + totalInterest - newTotalPayment).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '元';
                 
-                document.getElementById('savingsAmount').textContent = savedInterest.toFixed(2) + '元';
-                document.getElementById('reducedMonths').textContent = (totalMonths - currentMonth + 1 - newTotalMonths) + '个月';
+                const totalPrepay = prepayPlans.reduce((sum, plan) => sum + plan.amount, 0);
+                document.getElementById('prepayPercentage').textContent = ((totalPrepay / loanAmount) * 100).toFixed(2) + '%';
+                
+                document.getElementById('savingsAmount').textContent = savedInterest.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '元';
+                document.getElementById('reducedMonths').textContent = (totalMonths - paymentSchedule.length) + '个月';
                 
                 // 更新图表
                 paymentChart.data.datasets[0].data = [
@@ -505,77 +650,83 @@
                 paymentChart.update();
                 
                 // 更新还款计划表
-                updatePaymentTable();
+                updatePaymentTable(paymentSchedule);
             }
             
             // 更新还款计划表
-            function updatePaymentTable() {
+            function updatePaymentTable(paymentSchedule) {
                 const tableBody = document.getElementById('paymentTableBody');
                 tableBody.innerHTML = '';
                 
-                const loanAmount = parseFloat(document.getElementById('loanAmount').value) * 10000;
-                const annualRate = parseFloat(document.getElementById('annualRate').value) / 100;
-                const monthlyRate = annualRate / 12;
-                const totalMonths = parseInt(document.getElementById('loanTerm').value) * 12;
-                const monthlyPayment = loanAmount * monthlyRate * Math.pow(1 + monthlyRate, totalMonths) / 
-                                      (Math.pow(1 + monthlyRate, totalMonths) - 1);
+                // 显示未来10年（120个月）的还款计划
+                const displayMonths = Math.min(120, paymentSchedule.length);
                 
-                const prepayAmount = parseFloat(document.getElementById('prepayAmount').value) * 10000;
-                const prepayMonth = parseInt(document.getElementById('prepayMonth').value);
-                const prepayTimes = parseInt(document.getElementById('prepayTimes').value);
+                for (let i = 0; i < Math.min(5, displayMonths); i++) {
+                    addPaymentRow(tableBody, paymentSchedule[i]);
+                }
                 
-                let remainingPrincipal = loanAmount;
-                let prepaid = 0;
+                // 添加省略行
+                if (displayMonths > 10) {
+                    const collapseRow = document.createElement('tr');
+                    const collapseCell = document.createElement('td');
+                    collapseCell.colSpan = 6;
+                    collapseCell.className = 'collapsed-rows';
+                    collapseCell.textContent = `省略了 ${displayMonths - 10} 个月的数据...`;
+                    collapseRow.appendChild(collapseCell);
+                    tableBody.appendChild(collapseRow);
+                }
                 
-                // 只显示最近12个月
-                const displayMonths = Math.min(12, totalMonths);
-                
-                for (let month = 1; month <= displayMonths; month++) {
-                    const row = document.createElement('tr');
-                    
-                    // 期数
-                    const monthCell = document.createElement('td');
-                    monthCell.textContent = month;
-                    row.appendChild(monthCell);
-                    
-                    // 还款日期（模拟）
-                    const dateCell = document.createElement('td');
-                    const currentDate = new Date();
-                    currentDate.setMonth(currentDate.getMonth() + month - 1);
-                    dateCell.textContent = currentDate.toLocaleDateString();
-                    row.appendChild(dateCell);
-                    
-                    // 月供本金
-                    const monthlyInterest = remainingPrincipal * monthlyRate;
-                    const monthlyPrincipal = monthlyPayment - monthlyInterest;
-                    const principalCell = document.createElement('td');
-                    principalCell.textContent = monthlyPrincipal.toFixed(2);
-                    row.appendChild(principalCell);
-                    
-                    // 月供利息
-                    const interestCell = document.createElement('td');
-                    interestCell.textContent = monthlyInterest.toFixed(2);
-                    row.appendChild(interestCell);
-                    
-                    // 提前还款
-                    let extraPayment = 0;
-                    if (month >= prepayMonth && month < prepayMonth + prepayTimes && prepaid < prepayAmount) {
-                        extraPayment = Math.min(prepayAmount / prepayTimes, remainingPrincipal - monthlyPrincipal);
-                        prepaid += extraPayment;
-                    }
-                    const prepayCell = document.createElement('td');
-                    prepayCell.textContent = extraPayment > 0 ? extraPayment.toFixed(2) : '-';
-                    row.appendChild(prepayCell);
-                    
-                    // 剩余本金
-                    remainingPrincipal -= (monthlyPrincipal + extraPayment);
-                    const remainingCell = document.createElement('td');
-                    remainingCell.textContent = remainingPrincipal.toFixed(2);
-                    row.appendChild(remainingCell);
-                    
-                    tableBody.appendChild(row);
+                // 显示最后5个月
+                for (let i = Math.max(5, displayMonths - 5); i < displayMonths; i++) {
+                    addPaymentRow(tableBody, paymentSchedule[i]);
                 }
             }
+            
+            // 添加还款计划行
+            function addPaymentRow(tableBody, payment) {
+                const row = document.createElement('tr');
+                
+                // 期数
+                const monthCell = document.createElement('td');
+                monthCell.textContent = payment.month;
+                row.appendChild(monthCell);
+                
+                // 还款日期
+                const dateCell = document.createElement('td');
+                dateCell.textContent = payment.date.toLocaleDateString();
+                row.appendChild(dateCell);
+                
+                // 月供本金
+                const principalCell = document.createElement('td');
+                principalCell.textContent = payment.monthlyPrincipal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                row.appendChild(principalCell);
+                
+                // 月供利息
+                const interestCell = document.createElement('td');
+                interestCell.textContent = payment.monthlyInterest.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                row.appendChild(interestCell);
+                
+                // 提前还款
+                const prepayCell = document.createElement('td');
+                prepayCell.textContent = payment.extraPayment > 0 ? payment.extraPayment.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-';
+                row.appendChild(prepayCell);
+                
+                // 剩余本金
+                const remainingCell = document.createElement('td');
+                remainingCell.textContent = payment.remainingPrincipal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                row.appendChild(remainingCell);
+                
+                tableBody.appendChild(row);
+            }
+            
+            // 设置默认日期为今天
+            const today = new Date();
+            document.getElementById('startDate').value = today.toISOString().split('T')[0];
+            
+            // 设置默认提前还款日期为明年今天
+            const nextYear = new Date();
+            nextYear.setFullYear(today.getFullYear() + 1);
+            document.getElementById('prepayDate').value = nextYear.toISOString().split('T')[0];
         });
     </script>
 </body>
