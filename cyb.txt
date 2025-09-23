@@ -1,38 +1,65 @@
 # 加载必要的包
 library(dplyr)
-library(tidyr)
+library(lubridate)
 
+# 假设您的数据框名为df，包含country和date列
+# 示例数据
+df <- data.frame(
+  country = c("英国", "澳大利亚", "英国", "中国", "英国", 
+              "澳大利亚", "中国", "英国", "澳大利亚"),
+  date = as.Date(c("2025-07-25", "2025-07-25", "2025-07-25", 
+                   "2025-07-26", "2025-07-26", "2025-07-26",
+                   "2025-07-27", "2025-07-27", "2025-07-28"))
+)
 
-# 数据预处理
-df_clean <- df %>%
-  # 过滤出IC和OC类型的通话
-  filter(Call.Type %in% c("IC", "OC")) %>%
-  # 转换时间为时间格式
-  mutate(Time.of.the.call = as.POSIXct(Time.of.the.call, format = "%H:%M:%S")) %>%
-  # 按账户、日期和通话类型分组
-  group_by(Account_No, Date.of.the.call, Call.Type) %>%
-  # 获取每种类型的最早时间
-  summarise(earliest_time = min(Time.of.the.call, na.rm = TRUE),
-            .groups = 'drop') %>%
-  # 将IC和OC的时间分别放到不同的列
-  pivot_wider(
-    names_from = Call.Type,
-    values_from = earliest_time,
-    names_prefix = "earliest_"
+# 查看原始数据
+print("原始数据：")
+print(df)
+
+# 1. 按天统计
+daily_stats <- df %>%
+  group_by(date, country) %>%
+  summarise(daily_count = n(), .groups = 'drop') %>%
+  arrange(date, country)
+
+print("按天统计结果：")
+print(daily_stats)
+
+# 2. 按周统计（每周的起始日为周一）
+weekly_stats <- df %>%
+  mutate(week_start = floor_date(date, unit = "week", week_start = 1)) %>% # 周一开始
+  group_by(week_start, country) %>%
+  summarise(weekly_count = n(), .groups = 'drop') %>%
+  arrange(week_start, country)
+
+print("按周统计结果：")
+print(weekly_stats)
+
+# 3. 按月统计
+monthly_stats <- df %>%
+  mutate(month_start = floor_date(date, unit = "month")) %>%
+  group_by(month_start, country) %>%
+  summarise(monthly_count = n(), .groups = 'drop') %>%
+  arrange(month_start, country)
+
+print("按月统计结果：")
+print(monthly_stats)
+
+# 4. 综合统计（所有统计结果合并到一个数据框）
+comprehensive_stats <- df %>%
+  mutate(
+    week_start = floor_date(date, unit = "week", week_start = 1),
+    month_start = floor_date(date, unit = "month")
   ) %>%
-  # 标记是否存在IC早于OC的情况
-  mutate(has_IC_before_OC = ifelse(!is.na(earliest_IC) & !is.na(earliest_OC) & 
-                                   earliest_IC < earliest_OC, 
-                                 "Yes", "No"))
+  group_by(country, date, week_start, month_start) %>%
+  summarise(daily_count = n(), .groups = 'drop') %>%
+  group_by(country, week_start) %>%
+  mutate(weekly_count = sum(daily_count)) %>%
+  group_by(country, month_start) %>%
+  mutate(monthly_count = sum(daily_count)) %>%
+  ungroup() %>%
+  select(country, date, daily_count, week_start, weekly_count, month_start, monthly_count) %>%
+  arrange(country, date)
 
-# 查看结果
-print(df_clean)
-
-# 如果需要将标记结果合并回原始数据
-df_final <- df %>%
-  left_join(df_clean %>% 
-              select(Account_No, Date.of.the.call, has_IC_before_OC),
-            by = c("Account_No", "Date.of.the.call"))
-
-# 查看最终数据
-print(df_final)
+print("综合统计结果：")
+print(comprehensive_stats)
