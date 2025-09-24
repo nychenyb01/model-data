@@ -1,65 +1,105 @@
 # 加载必要的包
 library(dplyr)
-library(lubridate)
+library(stringr)
 
-# 假设您的数据框名为df，包含country和date列
-# 示例数据
-df <- data.frame(
-  country = c("英国", "澳大利亚", "英国", "中国", "英国", 
-              "澳大利亚", "中国", "英国", "澳大利亚"),
-  date = as.Date(c("2025-07-25", "2025-07-25", "2025-07-25", 
-                   "2025-07-26", "2025-07-26", "2025-07-26",
-                   "2025-07-27", "2025-07-27", "2025-07-28"))
+# 示例数据1：包含拆分的人名和生日
+data1 <- data.frame(
+  SurName = c("He", "Smith", "Johnson", "Wang", "Garcia", "Li"),
+  FirstName = c("Bing", "John", "Mary", "Wei", "Carlos", "Xiaoming"),
+  OtherName = c("Chloe", "Robert", "Ann", "", "Miguel", ""),
+  Birthday = as.Date(c("1990-05-15", "1985-12-10", "1978-03-22", "1992-08-07", "1988-11-30", "1980-01-01"))
 )
 
-# 查看原始数据
-print("原始数据：")
-print(df)
+# 示例数据2：包含完整人名（主表）
+data2 <- data.frame(
+  FullName = c("He, Bing", "He, Bing Chloe", "Smith, John", "Smith, John Robert", 
+               "Johnson, Mary", "Wang, Wei", "Garcia, Carlos", "Bing Chloe He",
+               "John Robert Smith", "Mary Ann Johnson", "Wei Wang", "Carlos Miguel Garcia",
+               "Li, Xiaoming", "Xiaoming Li", "Zhang, Wei"),  # 添加了Li和Zhang的示例
+  OtherInfo = paste("Info", 1:15)
+)
 
-# 1. 按天统计
-daily_stats <- df %>%
-  group_by(date, country) %>%
-  summarise(daily_count = n(), .groups = 'drop') %>%
-  arrange(date, country)
+# 查看数据
+print("数据1（拆分人名和生日）：")
+print(data1)
+print("数据2（完整人名）：")
+print(data2)
 
-print("按天统计结果：")
-print(daily_stats)
+# 定义匹配函数
+match_names <- function(fullname, surname, firstname, othername) {
+  # 将fullname转换为小写以便不区分大小写匹配
+  fullname_lower <- tolower(fullname)
+  surname_lower <- tolower(surname)
+  firstname_lower <- tolower(firstname)
+  othername_lower <- tolower(othername)
+  
+  # 检查Surname和FirstName是否都在fullname中
+  surname_in <- str_detect(fullname_lower, fixed(surname_lower))
+  firstname_in <- str_detect(fullname_lower, fixed(firstname_lower))
+  
+  # 如果OtherName为空，则只需要Surname和FirstName匹配
+  if (othername == "" || is.na(othername)) {
+    if (surname_in && firstname_in) {
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
+  } else {
+    # 如果OtherName不为空，则需要Surname、FirstName和OtherName都匹配
+    othername_in <- str_detect(fullname_lower, fixed(othername_lower))
+    if (surname_in && firstname_in && othername_in) {
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
+  }
+}
 
-# 2. 按周统计（每周的起始日为周一）
-weekly_stats <- df %>%
-  mutate(week_start = floor_date(date, unit = "week", week_start = 1)) %>% # 周一开始
-  group_by(week_start, country) %>%
-  summarise(weekly_count = n(), .groups = 'drop') %>%
-  arrange(week_start, country)
+# 应用匹配逻辑
+result <- data2
 
-print("按周统计结果：")
-print(weekly_stats)
+# 初始化matchValue列
+result$matchValue <- NA
 
-# 3. 按月统计
-monthly_stats <- df %>%
-  mutate(month_start = floor_date(date, unit = "month")) %>%
-  group_by(month_start, country) %>%
-  summarise(monthly_count = n(), .groups = 'drop') %>%
-  arrange(month_start, country)
+# 对数据2中的每个fullname，检查数据1中的每个记录
+for (i in 1:nrow(result)) {
+  fullname <- result$FullName[i]
+  
+  for (j in 1:nrow(data1)) {
+    surname <- data1$SurName[j]
+    firstname <- data1$FirstName[j]
+    othername <- data1$OtherName[j]
+    
+    # 检查是否匹配
+    if (match_names(fullname, surname, firstname, othername)) {
+      # 如果匹配，创建matchValue
+      if (othername == "" || is.na(othername)) {
+        result$matchValue[i] <- paste(surname, firstname, sep = " ")
+      } else {
+        result$matchValue[i] <- paste(surname, firstname, othername, sep = " ")
+      }
+      break  # 找到匹配后跳出内层循环
+    }
+  }
+}
 
-print("按月统计结果：")
-print(monthly_stats)
+# 查看匹配结果
+print("匹配结果：")
+print(result)
 
-# 4. 综合统计（所有统计结果合并到一个数据框）
-comprehensive_stats <- df %>%
-  mutate(
-    week_start = floor_date(date, unit = "week", week_start = 1),
-    month_start = floor_date(date, unit = "month")
-  ) %>%
-  group_by(country, date, week_start, month_start) %>%
-  summarise(daily_count = n(), .groups = 'drop') %>%
-  group_by(country, week_start) %>%
-  mutate(weekly_count = sum(daily_count)) %>%
-  group_by(country, month_start) %>%
-  mutate(monthly_count = sum(daily_count)) %>%
-  ungroup() %>%
-  select(country, date, daily_count, week_start, weekly_count, month_start, monthly_count) %>%
-  arrange(country, date)
+# 统计匹配情况
+match_stats <- result %>%
+  summarise(
+    total_records = n(),
+    matched_records = sum(!is.na(matchValue)),
+    unmatched_records = sum(is.na(matchValue)),
+    match_rate = round(matched_records / total_records * 100, 2)
+  )
 
-print("综合统计结果：")
-print(comprehensive_stats)
+print("匹配统计：")
+print(match_stats)
+
+# 显示未匹配的记录
+unmatched_records <- result %>% filter(is.na(matchValue))
+print("未匹配的记录：")
+print(unmatched_records)
