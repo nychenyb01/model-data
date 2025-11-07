@@ -1,105 +1,26 @@
-# 加载必要的包
-library(dplyr)
-library(stringr)
+2025 Personal Summary & Self-Assessment
 
-# 示例数据1：包含拆分的人名和生日
-data1 <- data.frame(
-  SurName = c("He", "Smith", "Johnson", "Wang", "Garcia", "Li"),
-  FirstName = c("Bing", "John", "Mary", "Wei", "Carlos", "Xiaoming"),
-  OtherName = c("Chloe", "Robert", "Ann", "", "Miguel", ""),
-  Birthday = as.Date(c("1990-05-15", "1985-12-10", "1978-03-22", "1992-08-07", "1988-11-30", "1980-01-01"))
-)
+Following the goals set in 2024, I have continued to advance in 2025. I strictly adhered to the personal development plan established at the beginning of the year, successfully translating technical expertise into tangible business impact and achieving significant results across three key areas: communication & collaboration, innovative tool development, and continuous learning. The core highlights, integrated with my development plan and project experience, are summarized below:
 
-# 示例数据2：包含完整人名（主表）
-data2 <- data.frame(
-  FullName = c("He, Bing", "He, Bing Chloe", "Smith, John", "Smith, John Robert", 
-               "Johnson, Mary", "Wang, Wei", "Garcia, Carlos", "Bing Chloe He",
-               "John Robert Smith", "Mary Ann Johnson", "Wei Wang", "Carlos Miguel Garcia",
-               "Li, Xiaoming", "Xiaoming Li", "Zhang, Wei"),  # 添加了Li和Zhang的示例
-  OtherInfo = paste("Info", 1:15)
-)
+I. Communication, Collaboration & Business Acumen: From Participant to Driver
 
-# 查看数据
-print("数据1（拆分人名和生日）：")
-print(data1)
-print("数据2（完整人名）：")
-print(data2)
+I was committed to moving beyond mere project execution and actively transitioning into a collaborator with strong business insight. This year, I not only ensured active participation in every team discussion but also, during offline project work, went beyond executing AA test scripts. I consistently inquired with the review team about the underlying needs and purposes behind the designed scenarios, offering constructive suggestions. Furthermore, I not only delivered results but also explained our code logic and design approach to the review team.
 
-# 定义匹配函数
-match_names <- function(fullname, surname, firstname, othername) {
-  # 将fullname转换为小写以便不区分大小写匹配
-  fullname_lower <- tolower(fullname)
-  surname_lower <- tolower(surname)
-  firstname_lower <- tolower(firstname)
-  othername_lower <- tolower(othername)
-  
-  # 检查Surname和FirstName是否都在fullname中
-  surname_in <- str_detect(fullname_lower, fixed(surname_lower))
-  firstname_in <- str_detect(fullname_lower, fixed(firstname_lower))
-  
-  # 如果OtherName为空，则只需要Surname和FirstName匹配
-  if (othername == "" || is.na(othername)) {
-    if (surname_in && firstname_in) {
-      return(TRUE)
-    } else {
-      return(FALSE)
-    }
-  } else {
-    # 如果OtherName不为空，则需要Surname、FirstName和OtherName都匹配
-    othername_in <- str_detect(fullname_lower, fixed(othername_lower))
-    if (surname_in && firstname_in && othername_in) {
-      return(TRUE)
-    } else {
-      return(FALSE)
-    }
-  }
-}
+· Highlight: Approaching Business Logic Design from a Data Perspective. While supporting the RCR Dashboard project, I proactively researched the business context upfront and understood that the project was intended to prepare for dashboard development, rather than being a simple review. This required a focus on maximum automation, not just generating scenario results using various tools. Since the core database was SASID, I leveraged my prior SAS knowledge to develop the entire code set using SAS. Drawing on my Gliksense experience, I repeatedly proposed in team meetings how our data should be presented and outputted to the dashboard development team, receiving direct recognition from the team. This demonstrates that my contribution has evolved from technical support to strategic partnership. The project involved 193 Scenarios, 20GB+ data, and automated around 60% of the key assurance outcomes for control testing. It was honored with the GSC China "Simple and Agile" Award and was featured in multiple departmental and global meetings, gaining recognition from management.
+· Highlight: Proactive Ownership in Cross-Departmental Collaboration. As the core developer for the A&A BoW Tool, I proactively took on communication and coordination responsibilities with multiple parties. This included discussing front-end and back-end development for the registration/login interface with colleagues in India, collaborating with back-end colleagues on database table design, communicating core requirements and logic for the main page development with the project lead, coordinating code synchronization to GitHub across teams, and working with the deployment team on deployment schedules.
 
-# 应用匹配逻辑
-result <- data2
+II. Data Innovation & Knowledge Sharing: From Developer to Influencer
 
-# 初始化matchValue列
-result$matchValue <- NA
+I successfully transformed data visualization and technical skills into practical products that enhance departmental efficiency and actively expanded their influence both within and outside the department.
 
-# 对数据2中的每个fullname，检查数据1中的每个记录
-for (i in 1:nrow(result)) {
-  fullname <- result$FullName[i]
-  
-  for (j in 1:nrow(data1)) {
-    surname <- data1$SurName[j]
-    firstname <- data1$FirstName[j]
-    othername <- data1$OtherName[j]
-    
-    # 检查是否匹配
-    if (match_names(fullname, surname, firstname, othername)) {
-      # 如果匹配，创建matchValue
-      if (othername == "" || is.na(othername)) {
-        result$matchValue[i] <- paste(surname, firstname, sep = " ")
-      } else {
-        result$matchValue[i] <- paste(surname, firstname, othername, sep = " ")
-      }
-      break  # 找到匹配后跳出内层循环
-    }
-  }
-}
+· Highlight: Developed Widely Recognized Innovative Tools, Receiving Awards. The RCAS Staff Utilisation Forecaster tool, for which I was a core developer, successfully addressed departmental resource allocation and regular reporting management needs, serving over 220 users. At the beginning of the year, this tool was honored with the R&C CoE A.C.E Program - TO-P Award - Innovative Talent award.
 
-# 查看匹配结果
-print("匹配结果：")
-print(result)
+III. AI & Professional Skills: From Learner to Practitioner
 
-# 统计匹配情况
-match_stats <- result %>%
-  summarise(
-    total_records = n(),
-    matched_records = sum(!is.na(matchValue)),
-    unmatched_records = sum(is.na(matchValue)),
-    match_rate = round(matched_records / total_records * 100, 2)
-  )
+I systematically executed my learning plan, not only enhancing my personal skills but also applying new knowledge to my work, creating a virtuous cycle of "Learn - Apply."
 
-print("匹配统计：")
-print(match_stats)
+· Highlight: Exceeded Learning Targets, Awarded "Top 5 Learning Star". I consistently engaged in structured learning on the Degreed platform, completing multiple AI and data-related courses. My learning hours were leading within the department, demonstrating my passion for learning and self-discipline in effectively managing my time. This knowledge has been highly beneficial for my project development and data analysis work. I leveraged AI to solve problems more efficiently within my familiar areas of expertise, extensively utilizing AI for code development and design this year. Currently, the RCAS Staff Utilisation Forecaster is also utilizing AI to gradually migrate the original R code to a Python solution to facilitate future deployment on our internal servers.
 
-# 显示未匹配的记录
-unmatched_records <- result %>% filter(is.na(matchValue))
-print("未匹配的记录：")
-print(unmatched_records)
+In 2025, I successfully delivered on my commitments made at the start of the year. I not only provided technical support but also collaborated and communicated more closely with the team, largely achieving the expected goals across every dimension of my personal development plan. My role is evolving from a technical executor into a key team member who can proactively identify business pain points, create value with innovative tools, and continuously drive self-improvement.
+
+Looking ahead to 2026, I will continue to deepen my business acumen, striving to become a bridge connecting technology and business. I plan to explore deeper applications of AI in review projects and data automation, creating even greater value for the team.
