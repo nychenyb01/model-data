@@ -1,23 +1,27 @@
-This process performs quality control checks on staff reviewing non-CEM (Customer Experience Management) cases, based on data from four quarters (Sep 2024, Dec 2024, Mar 2025, Jun 2025).
+This process outlines a compliance check (Strategy 15) to ensure all contact attempts (calls, SMS, letters) with cross-border customers adhere to specific regional regulations and internal policies. The logic for each check is summarized below.
 
-Step 1: Prepare Reference Data
-A master staff list is loaded that includes staff names, IDs, and their GCB band (a job grade/competency level).
+Step 1: Load and Prepare Data
 
-Step 2: Perform Staff Validation Checks
-For each review case in the quarterly datasets, the system retrieves and attaches detailed information about three staff members:
+· Call Records and Phone Flag Data are loaded and merged. The phone data identifies the customer's country.
+· Time Zone Adjustment: For analysis, call times to customers in the UK and Australia are converted to their local time (UK: -7 hours from HK; AUS: +2 hours from HK) to accurately assess "business hour" compliance.
 
-1. The Primary Reviewer (M1)
-2. The Secondary Reviewer (M2)
-3. The Original Case Handler (Collector)
+Step 2: Apply Country-Specific Contact Rules
+Five core checks are performed to flag potential violations:
 
-Step 3: Apply Review Integrity Rules
-Two key validation checks are performed:
+· Exception 1.1 (US Calls): Any phone call made to a customer located in the United States is flagged.
+· Exception 1.2 (Off-Hours Calls): Any outbound call to customers in Canada, UK, or Australia made outside their local business hours (9 AM - 5 PM), on a weekend, or on a public holiday is flagged.
+· Exception 1.3 (UK Call Frequency): For UK customers, an outbound call is flagged if either: more than 5 calls are made to the same customer on a single day, OR calls are made on more than 15 days within a 30-day cycle.
+· Exception 1.4 (AUS Call Frequency): For Australian customers, an outbound call is flagged if either: more than 3 calls are made in a week, OR more than 10 calls are made in a month.
+· Exception 1.5 (Mainland China Call Frequency): For Mainland Chinese customers (identified by phone number prefix '86'), a call is flagged if more than 3 call attempts are made to the same customer within a single day.
 
-· Exception 1 (Segregation of Duties): Flagged as "Y" if the M1 Reviewer and the M2 Reviewer are identified as the same person. This ensures independent oversight in the review process.
-· Exception 2 (Competency Hierarchy): Flagged as "Y" if the hierarchy of job grades (GCB bands) is incorrect according to any of these rules:
-  · The M2 reviewer's grade is higher than the M1 reviewer's grade.
-  · The M1 reviewer's grade is higher than the original collector's grade.
-  · The M2 reviewer's grade is higher than the original collector's grade.
+Step 3: Check Cross-Border SMS & Letters
 
-Step 4: Generate Output
-The final datasets for all four quarters, now containing staff details and the two exception flags, are compiled and saved to the output file: "A&A output strategy QA08.xlsx".
+· Exception 2 (SMS): Any SMS sent to a cross-border customer is flagged.
+· Exception 3 (Letter Frequency): For customers in Canada, UK, or Australia, a letter is flagged if more than 1 letter per week or more than 3 letters per month are sent to the same customer.
+
+Step 4: Check Total Contact Attempts for Canada
+
+· Exception 4 (CAN Total Contacts): For Canadian customers, any contact attempt (call, SMS, or letter) on a workday is flagged if the total number of contact attempts for that customer exceeds 6 on that same day.
+
+Step 5: Generate Output
+All contact records, along with the newly added exception flags (1.1 to 1.5, 2, 3, 4), are compiled and saved to the final report: "A&A output strategy 15.xlsx".
