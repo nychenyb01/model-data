@@ -1,30 +1,25 @@
-The business logic of this process can be summarized in the following steps:
+This process outlines the logic for a quality assurance (QA) sampling and variance check, based on two main evaluation types: random call monitoring and high-risk call monitoring.
 
-1. Load Core Data
+1. Define Data Sources
+The process uses specific files for different months (e.g., Aug 2024, Oct 2024) to find the full population of calls. Two separate sets of files are used:
 
-· The main list of assigned accounts is loaded from "assignment list250619-250731.xlsx".
-· A separate historical assignment list is loaded to find the first assignment date for each account.
+· "M1-Random" calls are sampled from their respective monthly population files.
+· "High Risk Monitor" calls are sampled from a different set of monthly high-risk population files.
 
-2. Identify Agent Type for Calls
+2. Perform Sampling & Aggregation
+Data is aggregated monthly for each QA reviewer (M2) and their associated sampling analyst (M1). Key counts are calculated, including:
 
-· A list of call records is loaded. For each call, the system identifies whether the agent was onshore or offshore by checking their ID against separate staff lists.
+· Total number of calls reviewed by M2.
+· Counts of satisfactory and unsatisfactory outcomes.
+· Number of variance cases (where M1 and M2 scores differ).
+· Counts of Random and High-Risk calls sampled.
 
-3. Flag Target Offshore Calls
-The process identifies potential target calls that meet all of these conditions:
+3. Apply Quality Control Checks
+A series of exception flags are generated to validate the sampling and review process:
 
-· The call is an Outbound Call (OC).
-· The agent who made the call is an offshore agent.
-· The call date is after the account's first assignment date.
+· Exception 3: Flags a case as "Y" if an M2 reviewer did not assess exactly 5 calls in a month.
+· Exception 4: Flags a case as "Y" if the variance rate (disagreement between M1 and M2 scores) for a reviewer exceeds 10%.
+· Exception 5: Flags a case as "Y" if an M2 reviewer's monthly sample contains zero calls from either the "Random" pool or the "High Risk Monitor" pool. The sample must include both types.
 
-4. Apply Inbound Call (IC) Precedence Rule
-
-· For each account and date, the system identifies the earliest inbound (IC) and earliest outbound (OC) call times.
-· If an inbound call (IC) occurred before the outbound call (OC) on the same day, that specific OC call is excluded from the final exception list. The logic is that the customer made contact first.
-
-5. Final Filtering
-
-· From the remaining list, a final check is performed: if the date of any subsequent inbound call (IC) is later than the date of the flagged outbound call (OC), it is marked separately (IC_Date_After_OC_Date = "Y").
-· The final output is filtered to include only records where the call type is "OC".
-
-6. Generate Output
-The final list of flagged outbound calls made by offshore agents is saved to the file: "A&A output strategy 19.xlsx".
+4. Generate Output
+The final summary statistics, including all calculated counts and exception flags, are saved to the file: "A&A output strategy QA01.xlsx".
