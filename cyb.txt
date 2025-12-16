@@ -1,26 +1,12 @@
-2025 Personal Summary & Self-Assessment
+The logic can be described as follows:
 
-Following the goals set in 2024, I have continued to advance in 2025. I strictly adhered to the personal development plan established at the beginning of the year, successfully translating technical expertise into tangible business impact and achieving significant results across three key areas: communication & collaboration, innovative tool development, and continuous learning. The core highlights, integrated with my development plan and project experience, are summarized below:
+First, data is loaded from the source file named "2.19.1_cessation list_202408-202507(updated with state and status).xlsx".
 
-I. Communication, Collaboration & Business Acumen: From Participant to Driver
+A customer is identified if their cessation reason is one of the following: Serious Illness, CSSA, Imprisonment, or Special Customer Handling.
 
-I was committed to moving beyond mere project execution and actively transitioning into a collaborator with strong business insight. This year, I not only ensured active participation in every team discussion but also, during offline project work, went beyond executing AA test scripts. I consistently inquired with the review team about the underlying needs and purposes behind the designed scenarios, offering constructive suggestions. Furthermore, I not only delivered results but also explained our code logic and design approach to the review team.
+Two exception flags are then created based on this list:
 
-· Highlight: Approaching Business Logic Design from a Data Perspective. While supporting the RCR Dashboard project, I proactively researched the business context upfront and understood that the project was intended to prepare for dashboard development, rather than being a simple review. This required a focus on maximum automation, not just generating scenario results using various tools. Since the core database was SASID, I leveraged my prior SAS knowledge to develop the entire code set using SAS. Drawing on my Gliksense experience, I repeatedly proposed in team meetings how our data should be presented and outputted to the dashboard development team, receiving direct recognition from the team. This demonstrates that my contribution has evolved from technical support to strategic partnership. The project involved 193 Scenarios, 20GB+ data, and automated around 60% of the key assurance outcomes for control testing. It was honored with the GSC China "Simple and Agile" Award and was featured in multiple departmental and global meetings, gaining recognition from management.
-· Highlight: Proactive Ownership in Cross-Departmental Collaboration. As the core developer for the A&A BoW Tool, I proactively took on communication and coordination responsibilities with multiple parties. This included discussing front-end and back-end development for the registration/login interface with colleagues in India, collaborating with back-end colleagues on database table design, communicating core requirements and logic for the main page development with the project lead, coordinating code synchronization to GitHub across teams, and working with the deployment team on deployment schedules.
+1. Exception 1 is flagged as "Y" if an identified customer has a blank next review date. Otherwise, it is "N".
+2. Exception 2 is flagged as "Y" if an identified customer meets all of the following criteria: they have a next review date that is not blank, that date is after July 31, 2025, and their overall status in the file is "in cessation". Otherwise, it is "N".
 
-II. Data Innovation & Knowledge Sharing: From Developer to Influencer
-
-I successfully transformed data visualization and technical skills into practical products that enhance departmental efficiency and actively expanded their influence both within and outside the department.
-
-· Highlight: Developed Widely Recognized Innovative Tools, Receiving Awards. The RCAS Staff Utilisation Forecaster tool, for which I was a core developer, successfully addressed departmental resource allocation and regular reporting management needs, serving over 220 users. At the beginning of the year, this tool was honored with the R&C CoE A.C.E Program - TO-P Award - Innovative Talent award.
-
-III. AI & Professional Skills: From Learner to Practitioner
-
-I systematically executed my learning plan, not only enhancing my personal skills but also applying new knowledge to my work, creating a virtuous cycle of "Learn - Apply."
-
-· Highlight: Exceeded Learning Targets, Awarded "Top 5 Learning Star". I consistently engaged in structured learning on the Degreed platform, completing multiple AI and data-related courses. My learning hours were leading within the department, demonstrating my passion for learning and self-discipline in effectively managing my time. This knowledge has been highly beneficial for my project development and data analysis work. I leveraged AI to solve problems more efficiently within my familiar areas of expertise, extensively utilizing AI for code development and design this year. Currently, the RCAS Staff Utilisation Forecaster is also utilizing AI to gradually migrate the original R code to a Python solution to facilitate future deployment on our internal servers.
-
-In 2025, I successfully delivered on my commitments made at the start of the year. I not only provided technical support but also collaborated and communicated more closely with the team, largely achieving the expected goals across every dimension of my personal development plan. My role is evolving from a technical executor into a key team member who can proactively identify business pain points, create value with innovative tools, and continuously drive self-improvement.
-
-Looking ahead to 2026, I will continue to deepen my business acumen, striving to become a bridge connecting technology and business. I plan to explore deeper applications of AI in review projects and data automation, creating even greater value for the team.
+The final result with these exception flags is saved in the output file "A&A output strategy 03.xlsx".
