@@ -1,18 +1,27 @@
-This process performs quality control checks on the staff assigned to call monitoring assessments (M1 and M2 reviewers) to ensure proper oversight and competency. The logic is applied separately to data from four different months (Aug, Oct, Nov 2024, and Feb 2025).
+This process validates whether the sampling of calls for quality monitoring (M1 review) meets established business rules across different teams and staff levels.
 
-Step 1: Prepare Staff Reference Data
-A master staff list is loaded, containing details like staff names, IDs, and their GCB band (a job grade level indicating seniority/competency).
+Step 1: Consolidate and Categorize Call Samples
+Call data from four different periods is combined into a single list. Each call is categorized by team type (e.g., Secured/Unsecured, DCA, Legal/Restructure) and tagged with a duration type ("Too Short," "Normal," or "Too Long") based on specific time thresholds unique to each team's expected call length.
 
-Step 2: Perform Manager Segregation Check
-For each reviewed call, the system flags an exception1 as "Y" if the M1 Manager and the M2 Manager are identified as the same person. This check ensures the required separation of duties in the review process.
+Step 2: Analyze Sampling per Staff Member
+For each staff member (Collector) in a given month and team, the process calculates:
 
-Step 3: Perform Competency Hierarchy Check
-For each reviewed call, the system flags an exception2 as "Y" if the hierarchy of job grades (GCB bands) is incorrect, based on these rules:
+· Total number of their calls selected for M1 review.
+· Counts of calls in each duration type category (short, normal, long).
 
-· The M2 reviewer's grade should not be higher than the M1 reviewer's grade.
-· The M1 reviewer's grade should not be higher than the original collector's grade.
-· The M2 reviewer's grade should not be higher than the original collector's grade.
-  A flag is raised if any of these conditions are met, indicating a potential lapse in the appropriate review hierarchy.
+Step 3: Apply Sampling Threshold Rules
+A required sample count (M1_check_threshold) is determined for each staff member based on two factors:
 
-Step 4: Generate Output
-The results, including the original data and the two new exception flags, are compiled and saved into the final report: "A&A output strategy QA05.xlsx".
+1. Job Band: "Band 7" staff require 5 calls per month. "Band 6" staff require 2 calls per quarter.
+2. New Hire Status: Staff within their first six months of employment require an additional 2 calls for monitoring, added to their standard threshold.
+
+Step 4: Generate Validation Flags
+Four key exception flags are created to identify gaps in the sampling process:
+
+· Exception 1: Flagged as "Y" if the actual number of calls sampled from a staff member (M1_Check_Count) does not equal their required threshold (M1_check_threshold).
+· Exception 2: Flagged as "Y" if the actual number of calls sampled (M1_Check_Count) is less than the required threshold (M1_check_threshold).
+· Exception 3: Flagged as "Y" if the distribution of call durations for a set of 5 samples does not meet the expected mix (e.g., 1 short, 1 long, 3 normal calls). For "Band 6" staff or if the sample size isn't 5, this check is not applied (NA).
+· Exception 4: Flagged as "Y" if the total volume of M1 reviews for a team/period does not match the volume of secondary M2 reviews, unless the M2 review count is exactly 5.
+
+Step 5: Generate Output
+The final analysis, including all calculated counts and the four exception flags, is saved to the file: "A&A output strategy QA06.xlsx".
