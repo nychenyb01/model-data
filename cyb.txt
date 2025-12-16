@@ -1,32 +1,30 @@
-The logic of this code can be summarized in the following steps:
+The business logic of this process can be summarized in the following steps:
 
-1. Load Data
-The process starts by loading the main customer account dataset from the file "A&A output strategy27.xlsx".
+1. Load Core Data
 
-2. Categorize Accounts
-Each account is assigned a category based on its product type:
+· The main list of assigned accounts is loaded from "assignment list250619-250731.xlsx".
+· A separate historical assignment list is loaded to find the first assignment date for each account.
 
-· "mortgage": For products containing "Mortgage" or "NA-GHOS".
-· "card": For products containing the word "card".
-· "loan": For all other products.
+2. Identify Agent Type for Calls
 
-3. Identify Accounts Sent a Specific Letter
+· A list of call records is loaded. For each call, the system identifies whether the agent was onshore or offshore by checking their ID against separate staff lists.
 
-· A record of automatically sent letters is loaded from the file "sms and letter records_250630-250731.xlsx".
-· From this record, a list is created specifically for accounts that received a pre-defined set of "TU" letter types.
-· A flag (sent_TU_letter) is then added to the main account list, marking "Y" for accounts that have received such a letter.
+3. Flag Target Offshore Calls
+The process identifies potential target calls that meet all of these conditions:
 
-4. Apply Category-Specific Exception Rules
-Three exception flags are created based on the account category, its status, and whether it has already received a letter. An account is flagged "Y" only if it meets all the listed conditions for its category and has sent_TU_letter marked as "N".
+· The call is an Outbound Call (OC).
+· The agent who made the call is an offshore agent.
+· The call date is after the account's first assignment date.
 
-· Card Exception: For accounts categorized as "card".
-  · Must also have a specific ACType (P06 or C3A).
-  · Must have an outstanding balance of $5,000 or more.
-  · Must be past due for 30 to 55 days (as of period 731).
-· Mortgage Exception: For accounts categorized as "mortgage".
-  · Must be past due for 30 to 52 days (as of period 731).
-· Loan Exception: For accounts categorized as "loan".
-  · Must be past due for 30 to 41 days (as of period 731).
+4. Apply Inbound Call (IC) Precedence Rule
 
-5. Generate Output
-The final dataset, now containing the account categories and the three new exception flags, is saved to a new file: "A&A output strategy 16.xlsx".
+· For each account and date, the system identifies the earliest inbound (IC) and earliest outbound (OC) call times.
+· If an inbound call (IC) occurred before the outbound call (OC) on the same day, that specific OC call is excluded from the final exception list. The logic is that the customer made contact first.
+
+5. Final Filtering
+
+· From the remaining list, a final check is performed: if the date of any subsequent inbound call (IC) is later than the date of the flagged outbound call (OC), it is marked separately (IC_Date_After_OC_Date = "Y").
+· The final output is filtered to include only records where the call type is "OC".
+
+6. Generate Output
+The final list of flagged outbound calls made by offshore agents is saved to the file: "A&A output strategy 19.xlsx".
