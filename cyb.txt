@@ -1,19 +1,23 @@
-This process validates whether the required number of deceased or non-performing customer accounts are being reviewed each month.
+This process performs quality control checks on staff reviewing non-CEM (Customer Experience Management) cases, based on data from four quarters (Sep 2024, Dec 2024, Mar 2025, Jun 2025).
 
-Step 1: Consolidate Review Data
-Review records are loaded from four separate quarterly files (Sep 2024, Dec 2024, Mar 2025, Jun 2025) and combined for analysis.
+Step 1: Prepare Reference Data
+A master staff list is loaded that includes staff names, IDs, and their GCB band (a job grade/competency level).
 
-Step 2: Count Monthly Reviews
-For each month, the process counts:
+Step 2: Perform Staff Validation Checks
+For each review case in the quarterly datasets, the system retrieves and attaches detailed information about three staff members:
 
-· M1 Reviews: The number of cases where the primary reviewer (M1) has provided comments and recommendations.
-· M2 Reviews: The number of cases where the secondary reviewer (M2) has provided comments and recommendations.
+1. The Primary Reviewer (M1)
+2. The Secondary Reviewer (M2)
+3. The Original Case Handler (Collector)
 
-Step 3: Apply Sampling Rules
-The monthly counts are checked against the required sample sizes:
+Step 3: Apply Review Integrity Rules
+Two key validation checks are performed:
 
-· Exception 1: Flagged as "Y" if the count of M1 reviews for a month is not equal to 5.
-· Exception 2: Flagged as "Y" if the count of M2 reviews for a month is not equal to 3.
+· Exception 1 (Segregation of Duties): Flagged as "Y" if the M1 Reviewer and the M2 Reviewer are identified as the same person. This ensures independent oversight in the review process.
+· Exception 2 (Competency Hierarchy): Flagged as "Y" if the hierarchy of job grades (GCB bands) is incorrect according to any of these rules:
+  · The M2 reviewer's grade is higher than the M1 reviewer's grade.
+  · The M1 reviewer's grade is higher than the original collector's grade.
+  · The M2 reviewer's grade is higher than the original collector's grade.
 
 Step 4: Generate Output
-The final data, with the review counts and the two exception flags, is compiled and saved to the output file: "A&A output strategy QA09.xlsx".
+The final datasets for all four quarters, now containing staff details and the two exception flags, are compiled and saved to the output file: "A&A output strategy QA08.xlsx".
