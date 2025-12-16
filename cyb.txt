@@ -1,25 +1,18 @@
-The process checks if any customer accounts that should be excluded from quality monitoring were accidentally included in the speech analysis call population. The logic is summarized below:
+This process performs quality control checks on the staff assigned to call monitoring assessments (M1 and M2 reviewers) to ensure proper oversight and competency. The logic is applied separately to data from four different months (Aug, Oct, Nov 2024, and Feb 2025).
 
-Step 1: Build the Call Population for Checking
-A consolidated list of randomly monitored calls is created by extracting and combining data from four monthly files (Aug 2024, Oct 2024, Nov 2024, Feb 2025). Key identifiers like Contact ID, Employee ID, and PBN (account number) are standardized and kept for matching.
+Step 1: Prepare Staff Reference Data
+A master staff list is loaded, containing details like staff names, IDs, and their GCB band (a job grade level indicating seniority/competency).
 
-Step 2: Check Against the PVC Customer List
+Step 2: Perform Manager Segregation Check
+For each reviewed call, the system flags an exception1 as "Y" if the M1 Manager and the M2 Manager are identified as the same person. This check ensures the required separation of duties in the review process.
 
-· A list of customers eligible for a Payment Vacation (PVC) is loaded from a previous strategy output file.
-· The logic checks if any account numbers from this PVC list appear within the four-month random call population.
-· Each account in the PVC list is flagged with an exception1 = "Y" if a match is found.
+Step 3: Perform Competency Hierarchy Check
+For each reviewed call, the system flags an exception2 as "Y" if the hierarchy of job grades (GCB bands) is incorrect, based on these rules:
 
-Step 3: Check Against the Customer Complaint List
+· The M2 reviewer's grade should not be higher than the M1 reviewer's grade.
+· The M1 reviewer's grade should not be higher than the original collector's grade.
+· The M2 reviewer's grade should not be higher than the original collector's grade.
+  A flag is raised if any of these conditions are met, indicating a potential lapse in the appropriate review hierarchy.
 
-· A register of customers who have submitted complaints is loaded.
-· The logic checks if any of these complainants' account numbers are present in the random call population.
-· Each account in the complaint list is flagged with an exception2 = "Y" if a match is found.
-
-Step 4: Check Against the Restructured Loan List
-
-· A list of customers with newly restructured loans is loaded.
-· The logic checks if any of these accounts are also present in the random call population.
-· Each account in the restructured list is flagged with an exception3 = "Y" if a match is found.
-
-Step 5: Generate the Output
-The three lists (PVC, Complaints, Restructured), now containing the new exception flags that indicate potential inclusion in the monitoring population, are compiled and saved into a single output file: "A&A output strategy QA02.xlsx".
+Step 4: Generate Output
+The results, including the original data and the two new exception flags, are compiled and saved into the final report: "A&A output strategy QA05.xlsx".
