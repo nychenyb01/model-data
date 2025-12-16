@@ -1,25 +1,32 @@
-The logic of this R code can be summarized as follows:
+The logic of this code can be summarized in the following steps:
 
-Step 1: Load Data
-A dataset is loaded from the file named "A&A output strategy 27.xlsx".
+1. Load Data
+The process starts by loading the main customer account dataset from the file "A&A output strategy27.xlsx".
 
-Step 2: Identify Key Customer Attributes
-Three key attributes are marked as TRUE or FALSE for each account:
+2. Categorize Accounts
+Each account is assigned a category based on its product type:
 
-· `acct_for_dpd90`: Marked TRUE for a specific group of customers identified by their account number pattern (beginning with '393' and ending with '167').
-· `is_mortgage`: Marked TRUE if the account's product type contains the words "Mortgage" or "NA-GHOS".
-· `is_deceased`: Marked TRUE if the account number is found in a separate "Deceased" list extracted from the "2.19.1 cessation list 202408-202507(updated with state and status).xlsx" file.
+· "mortgage": For products containing "Mortgage" or "NA-GHOS".
+· "card": For products containing the word "card".
+· "loan": For all other products.
 
-Step 3: Apply Exception Rules
-Three sets of exception flags are created based on the account attributes and statuses from two different time points (630 and 731):
+3. Identify Accounts Sent a Specific Letter
 
-· Exception 1: For standard processing.
-  · For non-mortgage accounts (is_mortgage==FALSE) not in the special group (acct_for_dpd90==FALSE): Flag "Y" if they are severely past due (>180 days) and not yet written off.
-  · For mortgage accounts (is_mortgage==TRUE) not in the special group: Flag "Y" if they are severely past due (>1860 days) and not yet written off.
-· Exception 2: For the special customer group.
-  · For accounts in the special group (acct_for_dpd90==TRUE): Flag "Y" if they are past due (>90 days) and not yet written off. A lower threshold is used here.
-· Exception 3: For deceased customers with specific account types.
-  · `exception3_630` / `exception3_731`: Flag "Y" for deceased customers (is_deceased==TRUE) with account type A09 or A16 that have not been written off at the respective time point.
+· A record of automatically sent letters is loaded from the file "sms and letter records_250630-250731.xlsx".
+· From this record, a list is created specifically for accounts that received a pre-defined set of "TU" letter types.
+· A flag (sent_TU_letter) is then added to the main account list, marking "Y" for accounts that have received such a letter.
 
-Step 4: Generate Output
-The final dataset, including all the original data and the new exception flags, is saved to a new file: "A&A output strategy 04.xlsx".
+4. Apply Category-Specific Exception Rules
+Three exception flags are created based on the account category, its status, and whether it has already received a letter. An account is flagged "Y" only if it meets all the listed conditions for its category and has sent_TU_letter marked as "N".
+
+· Card Exception: For accounts categorized as "card".
+  · Must also have a specific ACType (P06 or C3A).
+  · Must have an outstanding balance of $5,000 or more.
+  · Must be past due for 30 to 55 days (as of period 731).
+· Mortgage Exception: For accounts categorized as "mortgage".
+  · Must be past due for 30 to 52 days (as of period 731).
+· Loan Exception: For accounts categorized as "loan".
+  · Must be past due for 30 to 41 days (as of period 731).
+
+5. Generate Output
+The final dataset, now containing the account categories and the three new exception flags, is saved to a new file: "A&A output strategy 16.xlsx".
