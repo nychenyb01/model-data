@@ -1,25 +1,25 @@
-This process outlines the logic for a quality assurance (QA) sampling and variance check, based on two main evaluation types: random call monitoring and high-risk call monitoring.
+The process checks if any customer accounts that should be excluded from quality monitoring were accidentally included in the speech analysis call population. The logic is summarized below:
 
-1. Define Data Sources
-The process uses specific files for different months (e.g., Aug 2024, Oct 2024) to find the full population of calls. Two separate sets of files are used:
+Step 1: Build the Call Population for Checking
+A consolidated list of randomly monitored calls is created by extracting and combining data from four monthly files (Aug 2024, Oct 2024, Nov 2024, Feb 2025). Key identifiers like Contact ID, Employee ID, and PBN (account number) are standardized and kept for matching.
 
-· "M1-Random" calls are sampled from their respective monthly population files.
-· "High Risk Monitor" calls are sampled from a different set of monthly high-risk population files.
+Step 2: Check Against the PVC Customer List
 
-2. Perform Sampling & Aggregation
-Data is aggregated monthly for each QA reviewer (M2) and their associated sampling analyst (M1). Key counts are calculated, including:
+· A list of customers eligible for a Payment Vacation (PVC) is loaded from a previous strategy output file.
+· The logic checks if any account numbers from this PVC list appear within the four-month random call population.
+· Each account in the PVC list is flagged with an exception1 = "Y" if a match is found.
 
-· Total number of calls reviewed by M2.
-· Counts of satisfactory and unsatisfactory outcomes.
-· Number of variance cases (where M1 and M2 scores differ).
-· Counts of Random and High-Risk calls sampled.
+Step 3: Check Against the Customer Complaint List
 
-3. Apply Quality Control Checks
-A series of exception flags are generated to validate the sampling and review process:
+· A register of customers who have submitted complaints is loaded.
+· The logic checks if any of these complainants' account numbers are present in the random call population.
+· Each account in the complaint list is flagged with an exception2 = "Y" if a match is found.
 
-· Exception 3: Flags a case as "Y" if an M2 reviewer did not assess exactly 5 calls in a month.
-· Exception 4: Flags a case as "Y" if the variance rate (disagreement between M1 and M2 scores) for a reviewer exceeds 10%.
-· Exception 5: Flags a case as "Y" if an M2 reviewer's monthly sample contains zero calls from either the "Random" pool or the "High Risk Monitor" pool. The sample must include both types.
+Step 4: Check Against the Restructured Loan List
 
-4. Generate Output
-The final summary statistics, including all calculated counts and exception flags, are saved to the file: "A&A output strategy QA01.xlsx".
+· A list of customers with newly restructured loans is loaded.
+· The logic checks if any of these accounts are also present in the random call population.
+· Each account in the restructured list is flagged with an exception3 = "Y" if a match is found.
+
+Step 5: Generate the Output
+The three lists (PVC, Complaints, Restructured), now containing the new exception flags that indicate potential inclusion in the monitoring population, are compiled and saved into a single output file: "A&A output strategy QA02.xlsx".
