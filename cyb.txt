@@ -1,25 +1,16 @@
-This process (Strategy 27) creates a consolidated customer account view by merging data from two key dates: June 30 and July 31. The logic is as follows:
+This process performs quality control checks on the staff reviewing deceased or non-performing accounts, based on data from four quarters (Sep 2024, Dec 2024, Mar 2025, Jun 2025).
 
-Step 1: Load Source Data
-Data is loaded from a single master Excel file (cacs collections accounts as of 30JUN and 31JUL25 all products.xlsx), which contains separate sheets for different product types (Unsecured Loan, Card, PLGS Loan, Mortgage) for each of the two months.
+Step 1: Prepare Reference Data
+A master staff list is loaded that includes staff names, IDs, and their GCB band (a job grade/competency level).
 
-Step 2: Process June 30th Data
+Step 2: Consolidate Review Data
+Quality assurance data for deceased/non-performing account reviews is loaded from four different quarterly files and combined into a single dataset.
 
-· Data from the four product sheets for June 30th is combined into one dataset.
-· The Product Type field is updated for special cases:
-  · Mortgage accounts marked with GHOS are labeled as Mortgage-GHOS.
-  · Loan accounts marked with PLGS are labeled as Loan-PLGS.
+Step 3: Perform Review Integrity Checks
+Two key validation checks are performed for each reviewed case:
 
-Step 3: Process July 31st Data
+· Exception 1 (Segregation of Duties): Flagged as "Y" if the M1 Reviewer and the M2 Reviewer are identified as the same person. This ensures independent oversight in the review process.
+· Exception 2 (Competency Hierarchy): Flagged as "Y" if the M2 Reviewer's GCB band (seniority level) is higher than the M1 Reviewer's GCB band. The logic requires that the secondary reviewer (M2) should not be more senior than the primary reviewer (M1) to maintain an appropriate review hierarchy.
 
-· The same process is repeated for the July 31st data sheets, combining them and updating the Product Type field with the GHOS and PLGS identifiers.
-
-Step 4: Merge into a Single Account View
-
-· The June and July datasets are merged together using the Account Number as the key, ensuring all accounts from both periods are included.
-· Static customer information fields (like Product, ID) are consolidated so that if the information is present in one month's data but missing in the other, the available information is used to fill the gap.
-· Key performance indicators for both months—such as outstanding balance, delinquency status (DPD), and queue status—are retained side-by-side for comparison.
-· The FPD and PVC indicators are kept for both months to track any potential changes over time.
-
-Step 5: Generate Output
-The final, unified dataset is saved as the output file: "A&A output strategy 27.xlsx". This file provides a complete, account-level snapshot comparing status and movement across the two-month period.
+Step 4: Generate Output
+The final dataset, including the original review records and the two new exception flags, is saved to the output file: "A&A output strategy QA11.xlsx".
