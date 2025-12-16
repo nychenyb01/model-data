@@ -1,16 +1,19 @@
-This process performs quality control checks on the staff reviewing deceased or non-performing accounts, based on data from four quarters (Sep 2024, Dec 2024, Mar 2025, Jun 2025).
+This process validates whether the required number of deceased or non-performing customer accounts are being reviewed each month.
 
-Step 1: Prepare Reference Data
-A master staff list is loaded that includes staff names, IDs, and their GCB band (a job grade/competency level).
+Step 1: Consolidate Review Data
+Review records are loaded from four separate quarterly files (Sep 2024, Dec 2024, Mar 2025, Jun 2025) and combined for analysis.
 
-Step 2: Consolidate Review Data
-Quality assurance data for deceased/non-performing account reviews is loaded from four different quarterly files and combined into a single dataset.
+Step 2: Count Monthly Reviews
+For each month, the process counts:
 
-Step 3: Perform Review Integrity Checks
-Two key validation checks are performed for each reviewed case:
+· M1 Reviews: The number of cases where the primary reviewer (M1) has provided comments and recommendations.
+· M2 Reviews: The number of cases where the secondary reviewer (M2) has provided comments and recommendations.
 
-· Exception 1 (Segregation of Duties): Flagged as "Y" if the M1 Reviewer and the M2 Reviewer are identified as the same person. This ensures independent oversight in the review process.
-· Exception 2 (Competency Hierarchy): Flagged as "Y" if the M2 Reviewer's GCB band (seniority level) is higher than the M1 Reviewer's GCB band. The logic requires that the secondary reviewer (M2) should not be more senior than the primary reviewer (M1) to maintain an appropriate review hierarchy.
+Step 3: Apply Sampling Rules
+The monthly counts are checked against the required sample sizes:
+
+· Exception 1: Flagged as "Y" if the count of M1 reviews for a month is not equal to 5.
+· Exception 2: Flagged as "Y" if the count of M2 reviews for a month is not equal to 3.
 
 Step 4: Generate Output
-The final dataset, including the original review records and the two new exception flags, is saved to the output file: "A&A output strategy QA11.xlsx".
+The final data, with the review counts and the two exception flags, is compiled and saved to the output file: "A&A output strategy QA09.xlsx".
